@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 .idea/
 *.spec
+.vscode/
 
 # Virtual environment
 # venv/

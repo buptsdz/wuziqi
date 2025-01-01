@@ -4,7 +4,6 @@ import time
 import random
 
 # --- 全局常量与变量 ---
-
 # 窗口大小
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 750
@@ -20,7 +19,7 @@ GRAY = (200, 200, 200)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-# 半透明按钮背景颜色（RGBA，最后一个值为透明度）
+# 半透明按钮背景颜色
 BUTTON_BG_COLOR = (128, 128, 128, 150)  # 灰色，约60%透明
 BUTTON_HOVER_COLOR = (255, 0, 0, 150)  # 红色，约60%透明
 
@@ -36,7 +35,7 @@ winner = None
 game_ended = False
 game_over = False
 
-# 历史战绩
+# 走棋记录
 history = []
 
 # AI相关
@@ -66,8 +65,8 @@ font_large = pygame.font.SysFont("Microsoft YaHei", 40, bold=True)
 
 
 # --- 函数定义 ---
+# 重新开始游戏(清空棋盘、历史等)，保留当前难度，不退回菜单
 def restart_game():
-    """重新开始游戏(清空棋盘、历史等)，保留当前难度，不退回菜单"""
     global board, current_player, winner, game_ended
     global ai_thinking, ai_move_time, history, ai_last_move
     board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
@@ -81,14 +80,14 @@ def restart_game():
     print("游戏已重置，继续对局")
 
 
+# 退出游戏
 def quit_game():
-    """退出游戏"""
     global game_over
     game_over = True
 
 
+# 绘制初始菜单界面
 def draw_menu():
-    """绘制初始菜单界面"""
     screen.fill(GRAY)
     title_text = font_large.render("五子棋 - 人机对战（低智版）", True, RED)
     screen.blit(
@@ -178,7 +177,7 @@ def start_game():
 def draw_button(text, x, y, w, h, color, hover_color, action=None, transparent=False):
     """
     绘制按钮并检测点击
-    :param transparent: 若为 True，则使用半透明绘制
+    :param transparent: 若为 True，使用半透明绘制
     """
     mouse = pygame.mouse.get_pos()
     click = pygame.mouse.get_pressed()
@@ -210,7 +209,7 @@ def draw_button(text, x, y, w, h, color, hover_color, action=None, transparent=F
 def draw_board():
     """绘制棋盘和网格"""
     pygame.draw.rect(screen, GRAY, (0, 0, BOARD_WIDTH, BOARD_HEIGHT))
-    for i in range(GRID_SIZE):
+    for i in range(GRID_SIZE + 1):
         # 垂直线
         start_x = i * CELL_SIZE
         pygame.draw.line(screen, BLACK, (start_x, 0), (start_x, BOARD_HEIGHT), 1)
@@ -250,7 +249,7 @@ def draw_pieces():
 
 
 def highlight_square():
-    """根据鼠标位置高亮方格"""
+    """根据鼠标位置高亮当前方格"""
     if current_player == 1 and not game_ended:
         mouse_x, mouse_y = pygame.mouse.get_pos()
         # 仅在棋盘区域内才执行
@@ -275,7 +274,7 @@ def display_info():
 
 
 def display_history():
-    """在右侧(700,0)-(900,800)区域显示历史战绩"""
+    """在右侧区域显示走棋历史"""
     pygame.draw.rect(
         screen, WHITE, (BOARD_WIDTH, 0, SCREEN_WIDTH - BOARD_WIDTH, SCREEN_HEIGHT)
     )
@@ -378,8 +377,6 @@ def ai_move():
     # Hard：更加强调进攻(2.0 : 1.3)
     elif diff == "Hard":
         move = ai_move_heuristic(2.0, 1.3)
-    else:
-        move = ai_move_random()
 
     if not move:
         return
@@ -397,16 +394,6 @@ def ai_move():
         current_player = 1
         ai_thinking = False
         ai_move_time = 0
-
-
-def ai_move_random():
-    """AI随机落子"""
-    empty_cells = [
-        (x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE) if board[x][y] == 0
-    ]
-    if not empty_cells:
-        return None
-    return random.choice(empty_cells)
 
 
 def ai_move_heuristic(attack_factor=1.0, defend_factor=1.1):
@@ -441,7 +428,6 @@ def ai_move_heuristic(attack_factor=1.0, defend_factor=1.1):
 
 
 # --- 主循环 ---
-
 while not game_over:
     clock.tick(60)  # FPS限制
     for event in pygame.event.get():

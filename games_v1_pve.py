@@ -33,7 +33,7 @@ current_player = 1  # 1=黑棋(玩家), 2=白棋(AI)
 board = [[0 for _ in range(GRID_SIZE)] for _ in range(GRID_SIZE)]
 winner = None
 game_ended = False
-game_over = False
+game_quit = False
 
 # 走棋记录
 history = []
@@ -44,7 +44,7 @@ ai_move_time = 0
 AI_DELAY = 1  # 模拟AI思考延迟
 
 # 难度列表（含新难度）
-difficulties = ["Common", "Medium", "Hard"]
+difficulties = ["测试", "Common", "Medium", "Hard"]
 selected_difficulty = "Common"  # 默认难度
 
 # 新增：AI最后一手的落子坐标(行,列)
@@ -80,10 +80,16 @@ def restart_game():
     print("游戏已重置，继续对局")
 
 
+def back_to_menu():
+    global game_state
+    game_state = "menu"
+    print("返回菜单")
+
+
 # 退出游戏
 def quit_game():
-    global game_over
-    game_over = True
+    global game_quit
+    game_quit = True
 
 
 # 绘制初始菜单界面
@@ -112,7 +118,7 @@ def draw_menu():
     button_width = 120
     button_height = 50
     gap = 25
-    total_width = 3 * button_width + 3 * gap
+    total_width = 4 * button_width + 3 * gap
     start_x = SCREEN_WIDTH // 2 - total_width // 2
     start_y = 250
 
@@ -377,6 +383,9 @@ def ai_move():
     # Hard：更加强调进攻(2.0 : 1.3)
     elif diff == "Hard":
         move = ai_move_heuristic(2.0, 1.3)
+    # 完全随机
+    elif diff == "测试":
+        move = ai_move_random()
 
     if not move:
         return
@@ -394,6 +403,16 @@ def ai_move():
         current_player = 1
         ai_thinking = False
         ai_move_time = 0
+
+
+def ai_move_random():
+    """AI随机落子"""
+    empty_cells = [
+        (x, y) for x in range(GRID_SIZE) for y in range(GRID_SIZE) if board[x][y] == 0
+    ]
+    if not empty_cells:
+        return None
+    return random.choice(empty_cells)
 
 
 def ai_move_heuristic(attack_factor=1.0, defend_factor=1.1):
@@ -428,11 +447,11 @@ def ai_move_heuristic(attack_factor=1.0, defend_factor=1.1):
 
 
 # --- 主循环 ---
-while not game_over:
+while not game_quit:
     clock.tick(60)  # FPS限制
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            game_over = True
+            game_quit = True
 
         # 菜单状态时只响应按钮点击
         if game_state == "menu":
@@ -457,6 +476,7 @@ while not game_over:
                             # 如果玩家形成五连珠
                             if check_winner(board, 1):
                                 winner = 1
+                                time.sleep(0.3)  # 等待0.3秒，防止立即点击到按钮
                                 game_ended = True
                             else:
                                 # 切换到 AI
@@ -485,7 +505,7 @@ while not game_over:
         # 顶部文字（当前玩家、难度）
         display_info()
 
-        # 若AI正在思考，则显示提示 + 等待时机落子
+        # 若AI正在"思考"，则显示提示
         if current_player == 2 and ai_thinking and not game_ended:
             # 显示“AI 正在思考...”文字
             thinking_txt = font_medium.render("AI 正在思考...", True, BLUE)
@@ -507,6 +527,7 @@ while not game_over:
                 text = font_large.render("黑棋 获胜!", True, RED)
             else:
                 text = font_large.render("白棋 (AI) 获胜!", True, RED)
+
             screen.blit(
                 text,
                 (
@@ -520,22 +541,22 @@ while not game_over:
             btn_h = 50
             space = 20
 
-            x_restart = BOARD_WIDTH // 2 - btn_w - space // 2
-            y_restart = BOARD_HEIGHT // 2 + 60
+            x_restart = BOARD_WIDTH + 20
+            y_restart = BOARD_HEIGHT // 2 + 200
             draw_button(
-                "重新开始",
+                "返回主菜单",
                 x_restart,
                 y_restart,
                 btn_w,
                 btn_h,
                 BUTTON_BG_COLOR,
                 BUTTON_HOVER_COLOR,
-                restart_game,
+                back_to_menu,
                 transparent=True,
             )
 
-            x_quit = BOARD_WIDTH // 2 + space // 2
-            y_quit = BOARD_HEIGHT // 2 + 60
+            x_quit = BOARD_WIDTH + 20
+            y_quit = BOARD_HEIGHT // 2 + 280
             draw_button(
                 "退出游戏",
                 x_quit,

@@ -1,4 +1,3 @@
-# 更新后的 Pygame 五子棋游戏代码，包括轮流放置棋子的逻辑
 import pygame
 import sys
 import time
@@ -6,6 +5,7 @@ import time
 # 初始化Pygame
 pygame.init()
 pygame.font.init()
+
 # 设置窗口大小和标题
 size = width, height = 640, 640
 screen = pygame.display.set_mode(size)
